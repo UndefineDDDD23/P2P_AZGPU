@@ -64,10 +64,6 @@
 
 3. Для запуска клиентской части в папке client, можно использовать любой веб-сервер.
 
-4. Далее напишите в файле /signaling_server\env.php ваш APP_URL:
-    <?php
-    return [
-        'APP_URL' => 'http://localhost:8000',
-    ];
+4. Далее напишите в файле /signaling_server\env.php ваш APP_URL.
 
 4. Запустите php signaling_server/signaling_server.php
