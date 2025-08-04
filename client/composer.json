@@ -1,0 +1,7 @@
+{
+    "name": "P2P_AZGPU",
+    "description": "P2P conference for azgpu",
+    "require": {
+        "cboden/ratchet": "^0.4.4"
+    }
+}
