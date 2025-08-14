@@ -81,3 +81,11 @@
 [2025-08-14 10:25:31] INFO: New connection opened {"resourceId":252}
 [2025-08-14 10:25:31] INFO: Connection closed {"resourceId":247}
 [2025-08-14 10:25:32] INFO: New connection opened {"resourceId":257}
+[2025-08-14 10:40:49] INFO: New connection opened {"resourceId":55}
+[2025-08-14 10:40:57] ERROR: Attempt to create room with invalid admin password {"resourceId":55}
+[2025-08-14 10:41:02] INFO: Room created {"roomId":"e7acbabb","secretKey":"6c0e4bb91c8eecf8e27fcf188a6b02fd","resourceId":55}
+[2025-08-14 10:41:04] INFO: Connection closed {"resourceId":55}
+[2025-08-14 10:41:04] INFO: New connection opened {"resourceId":94}
+[2025-08-14 10:41:10] INFO: New connection opened {"resourceId":98}
+[2025-08-14 10:41:13] INFO: Connection closed {"resourceId":98}
+[2025-08-14 10:41:14] INFO: Connection closed {"resourceId":94}

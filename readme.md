@@ -47,10 +47,11 @@
 
 ### Настройка
 
-4. Настройте URL клиентского приложения в файле `signaling_server/env.php`:
+4. Настройте пароль администратора и URL клиентского приложения в файле `signaling_server/env.php`:
    ```php
    return [
-       'APP_URL' => 'http://localhost:3000/client/', // Измените на ваш URL
+      'APP_URL' => 'http://localhost:3000/client/',   // Ваш URL 
+      'ADMIN_PASSWORD' => 'root',                     // Ваш пароль
    ];
    ```
 

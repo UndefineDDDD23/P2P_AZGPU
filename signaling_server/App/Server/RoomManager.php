@@ -22,7 +22,7 @@ class RoomManager
     public function createRoom(ConnectionInterface $admin, array $data): void
     {
         $adminPassword = $data['adminPassword'] ?? '';
-        $validAdminPassword = 'root';
+        $validAdminPassword = Config::get('ADMIN_PASSWORD');
 
         if ($adminPassword !== $validAdminPassword) {
             $this->logger->error("Attempt to create room with invalid admin password", ['resourceId' => $admin->resourceId]);
