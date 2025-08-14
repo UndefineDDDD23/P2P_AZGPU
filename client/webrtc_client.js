@@ -1,296 +1,248 @@
-const socket = new WebSocket("ws://localhost:8080/");
-const localVideo = document.getElementById("localVideo");
-const remoteVideosContainer = document.getElementById("remoteVideosContainer");
-const roomIdInput = document.getElementById("roomIdInput");
-const shareScreenButton = document.getElementById("shareScreen");
-const toggleCameraButton = document.getElementById("toggleCamera");
-const toggleMicButton = document.getElementById("toggleMic");
+class VideoConference {
+    constructor(wsUrl) {
+        // --- DOM элементы ---
+        this.localVideo = document.getElementById("localVideo");
+        this.remoteVideosContainer = document.getElementById("remoteVideosContainer");
+        this.roomIdInput = document.getElementById("roomIdInput");
+        this.shareScreenButton = document.getElementById("shareScreen");
+        this.toggleCameraButton = document.getElementById("toggleCamera");
+        this.toggleMicButton = document.getElementById("toggleMic");
 
-let roomId;
-let peerConnections = {}; // Список RTCPeerConnection по участникам
-let localStream;
-let screenStream = null; // Поток экрана
-let isCameraEnabled = true;
-let isMicEnabled = true;
+        // --- Состояние ---
+        this.roomId = null;
+        this.peerConnections = {};
+        this.localStream = null;
+        this.screenStream = null;
+        this.isCameraEnabled = true;
+        this.isMicEnabled = true;
 
-// Функция для получения параметров из URL
-function getQueryParam(param) {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(param);
-}
+        // --- WebSocket ---
+        this.socket = new WebSocket(wsUrl);
+        this.socket.onmessage = (event) => this.onSocketMessage(event);
 
-// Обработка входящих сообщений WebSocket
-socket.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-
-  switch (data.type) {
-    case 'new-peer':
-      handleNewPeer(data.peerId);
-      break;
-
-    case 'signal':
-      handleSignal(data.peerId, data.signalData);
-      break;
-
-    case 'peer-left':
-      handlePeerLeft(data.peerId);
-      break;
-
-    // Ответ от сервера при создании комнаты
-    case 'room-created':
-      let roomUrlElement = document.getElementById("room_URL");
-      roomUrlElement.href = data.url;
-      roomUrlElement.innerText = data.url;
-      console.log("Комната создана!\nRoom ID: " + data.roomId + "\nКлюч: " + data.secretKey + "\nURL: " + data.url);
-      break;
-
-    default:
-      console.log("Неизвестный тип сообщения:", data.type);
-  }
-};
-
-// Присоединение к комнате. Если в URL заданы roomId и key, то они используются.
-async function joinRoom() {
-  // Если в поле ввода ничего не введено, пытаемся взять roomId из URL
-  roomId = roomIdInput.value || getQueryParam('roomId');
-  const key = getQueryParam('key');
-
-  if (!roomId || !key) {
-    alert("Для подключения к комнате в URL должны быть заданы параметры roomId и key.");
-    return;
-  }
-
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    localVideo.srcObject = localStream;
-    console.log("Local video track: " + localStream.getVideoTracks()[0].id);
-    // Передаём также секретный ключ
-    socket.send(JSON.stringify({ type: "join-room", roomId, key }));
-  } catch (error) {
-    console.error("Ошибка получения локального видео/аудио:", error);
-  }
-}
-
-// Создание нового соединения с участником (без изменений)
-function handleNewPeer(peerId) {
-  let peerConnection = peerConnections[peerId];
-  if (!peerConnection) {
-    peerConnection = createPeerConnection(peerId);
-    peerConnections[peerId] = peerConnection;
-  }
-  console.log(`🎥 Используемый localStream ID: ${localStream.id}`);
-  localStream.getTracks().forEach((track) => {
-    console.log(`🎤 Добавление трека: ${track.id} (kind: ${track.kind}) в PeerConnection ${peerId}`);
-    peerConnection.addTrack(track, localStream);
-  });
-
-  console.log("Generate offer and send video track to: " + peerId + " Track: " + localStream.getVideoTracks()[0].id);
-  peerConnection.createOffer().then((offer) => {
-    peerConnection.setLocalDescription(offer);
-    console.log(offer);
-
-    socket.send(JSON.stringify({
-      type: "signal",
-      roomId,
-      targetId: peerId,
-      signalData: offer
-    }));
-  }).catch((error) => console.error("Ошибка создания offer:", error));
-}
-
-// Обработка сигналинга (без изменений)
-function handleSignal(peerId, signalData) {
-  let peerConnection = peerConnections[peerId];
-  if (!peerConnection) {
-    peerConnection = createPeerConnection(peerId);
-    peerConnections[peerId] = peerConnection;
-  }
-
-  if (signalData.type === "offer") {
-    console.log(`Offer from ${peerId}: `);
-
-    peerConnection.setRemoteDescription(new RTCSessionDescription(signalData));
-
-    console.log(signalData);
-    console.log(`🎥 Используемый localStream ID: ${localStream.id}`);
-    localStream.getTracks().forEach((track) => {
-      console.log(`🎤 Добавление трека: ${track.id} (kind: ${track.kind}) в PeerConnection ${peerId}`);
-      peerConnection.addTrack(track, localStream);
-    });
-
-    console.log("Send answer to: " + peerId + " Track: " + localStream.getVideoTracks()[0].id);
-    peerConnection.createAnswer().then((answer) => {
-      peerConnection.setLocalDescription(answer);
-      console.log(answer);
-
-      socket.send(JSON.stringify({
-        type: "signal",
-        roomId,
-        targetId: peerId,
-        signalData: answer
-      }));
-    }).catch((error) => console.error("Ошибка создания answer:", error));
-  } else if (signalData.type === "answer") {
-    console.log(`📩 Получен ответ от ${peerId}:`, signalData);
-
-    peerConnection.setRemoteDescription(new RTCSessionDescription(signalData))
-      .then(() => console.log(`✅ Remote Description установлено для ${peerId}`))
-      .catch(error => console.error(`❌ Ошибка setRemoteDescription:`, error));
-  } else if (signalData.candidate) {
-    peerConnection.addIceCandidate(new RTCIceCandidate(signalData)).catch((error) => {
-      console.error("Ошибка добавления ICE-кандидата:", error);
-    });
-  }
-}
-
-// Обработка отключения участника (без изменений)
-function handlePeerLeft(peerId) {
-  const remoteVideo = document.getElementById(`remote-video-${peerId}`);
-  if (remoteVideo) {
-    remoteVideo.remove();
-  }
-
-  if (peerConnections[peerId]) {
-    peerConnections[peerId].close();
-    delete peerConnections[peerId];
-  }
-}
-
-// Создание RTCPeerConnection (без изменений)
-function createPeerConnection(peerId) {
-  var configuration = {
-    iceServers: [
-      { 'url': 'stun:stun.l.google.com:19302' },
-      {
-        'url': 'turn:192.158.29.39:3478?transport=udp',
-        'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-        'username': '28224511:1379330808'
-      },
-      {
-        'url': 'turn:192.158.29.39:3478?transport=tcp',
-        'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-        'username': '28224511:1379330808'
-      }
-    ],
-    offerToReceiveAudio: true,
-    offerToReceiveVideo: true,
-  }
-  const peerConnection = new RTCPeerConnection(configuration);
-
-  peerConnection.ontrack = (event) => {
-    if (event.track.kind === "video") {
-      console.log(event.streams[0], event.track.id)
-      const remoteVideo = document.createElement("video");
-      remoteVideo.id = `remote-video-${peerId}`;
-      remoteVideo.srcObject = event.streams[0];
-      remoteVideo.autoplay = true;
-      remoteVideo.muted = true;
-      remoteVideosContainer.appendChild(remoteVideo);
+        // --- Привязка событий ---
+        this.shareScreenButton.onclick = () => this.shareScreen();
+        this.toggleCameraButton.onclick = () => this.toggleCamera();
+        this.toggleMicButton.onclick = () => this.toggleMic();
     }
-    if (event.track.kind === "audio") {
-      // Обработка аудио-трека (при необходимости)
+
+    // --- Утилита для чтения query параметров ---
+    getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
     }
-  };
 
-  peerConnection.onicecandidate = (event) => {
-    if (event.candidate) {
-      socket.send(JSON.stringify({
-        type: "signal",
-        roomId,
-        targetId: peerId,
-        signalData: event.candidate
-      }));
+    // --- Обработка сообщений WebSocket ---
+    onSocketMessage(event) {
+        const data = JSON.parse(event.data);
+        switch (data.type) {
+            case 'new-peer':
+                this.handleNewPeer(data.peerId);
+                break;
+            case 'signal':
+                this.handleSignal(data.peerId, data.signalData);
+                break;
+            case 'peer-left':
+                this.handlePeerLeft(data.peerId);
+                break;
+            case 'room-created':
+                let roomUrlElement = document.getElementById("room_URL");
+                roomUrlElement.href = data.url;
+                roomUrlElement.innerText = data.url;
+                console.log(`Комната создана!\nRoom ID: ${data.roomId}\nКлюч: ${data.secretKey}\nURL: ${data.url}`);
+                break;
+            default:
+                console.log("Неизвестный тип сообщения:", data.type);
+        }
     }
-  };
 
-  return peerConnection;
+    // --- Присоединение к комнате ---
+    async joinRoom() {
+        this.roomId = this.roomIdInput.value || this.getQueryParam('roomId');
+        const key = this.getQueryParam('key');
+        if (!this.roomId || !key) {
+            alert("Для подключения к комнате в URL должны быть заданы параметры roomId и key.");
+            return;
+        }
+
+        try {
+            this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            this.localVideo.srcObject = this.localStream;
+            console.log(`Local video track: ${this.localStream.getVideoTracks()[0]?.id}`);
+            this.socket.send(JSON.stringify({ type: "join-room", roomId: this.roomId, key }));
+        } catch (error) {
+            console.error("Ошибка получения локального видео/аудио:", error);
+        }
+    }
+
+    // --- Новый peer ---
+    handleNewPeer(peerId) {
+        let pc = this.peerConnections[peerId];
+        if (!pc) {
+            pc = this.createPeerConnection(peerId);
+            this.peerConnections[peerId] = pc;
+        }
+        this.localStream.getTracks().forEach(track => pc.addTrack(track, this.localStream));
+
+        pc.createOffer()
+            .then(offer => {
+                pc.setLocalDescription(offer);
+                this.socket.send(JSON.stringify({
+                    type: "signal",
+                    roomId: this.roomId,
+                    targetId: peerId,
+                    signalData: offer
+                }));
+            })
+            .catch(err => console.error("Ошибка создания offer:", err));
+    }
+
+    // --- Обработка сигналинга ---
+    handleSignal(peerId, signalData) {
+        let pc = this.peerConnections[peerId];
+        if (!pc) {
+            pc = this.createPeerConnection(peerId);
+            this.peerConnections[peerId] = pc;
+        }
+
+        if (signalData.type === "offer") {
+            pc.setRemoteDescription(new RTCSessionDescription(signalData));
+            this.localStream.getTracks().forEach(track => pc.addTrack(track, this.localStream));
+            pc.createAnswer()
+                .then(answer => {
+                    pc.setLocalDescription(answer);
+                    this.socket.send(JSON.stringify({
+                        type: "signal",
+                        roomId: this.roomId,
+                        targetId: peerId,
+                        signalData: answer
+                    }));
+                })
+                .catch(err => console.error("Ошибка создания answer:", err));
+        } else if (signalData.type === "answer") {
+            pc.setRemoteDescription(new RTCSessionDescription(signalData))
+                .then(() => console.log(`✅ Remote Description установлено для ${peerId}`))
+                .catch(err => console.error("Ошибка setRemoteDescription:", err));
+        } else if (signalData.candidate) {
+            pc.addIceCandidate(new RTCIceCandidate(signalData))
+                .catch(err => console.error("Ошибка добавления ICE-кандидата:", err));
+        }
+    }
+
+    // --- Peer отключился ---
+    handlePeerLeft(peerId) {
+        const remoteVideo = document.getElementById(`remote-video-${peerId}`);
+        if (remoteVideo) remoteVideo.remove();
+
+        if (this.peerConnections[peerId]) {
+            this.peerConnections[peerId].close();
+            delete this.peerConnections[peerId];
+        }
+    }
+
+    // --- Создание нового RTCPeerConnection ---
+    createPeerConnection(peerId) {
+        const configuration = {
+            iceServers: [
+                { 'url': 'stun:stun.l.google.com:19302' },
+                {
+                    'url': 'turn:192.158.29.39:3478?transport=udp',
+                    'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                    'username': '28224511:1379330808'
+                },
+                {
+                    'url': 'turn:192.158.29.39:3478?transport=tcp',
+                    'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                    'username': '28224511:1379330808'
+                }
+            ]
+        };
+        const pc = new RTCPeerConnection(configuration);
+
+        pc.ontrack = (event) => {
+            if (event.track.kind === "video") {
+                const remoteVideo = document.createElement("video");
+                remoteVideo.id = `remote-video-${peerId}`;
+                remoteVideo.srcObject = event.streams[0];
+                remoteVideo.autoplay = true;
+                this.remoteVideosContainer.appendChild(remoteVideo);
+            }
+            console.log(`Получен трек ${event.track.kind} от ${peerId}: ${event.track.id}`);
+        };
+
+        pc.onicecandidate = (event) => {
+            if (event.candidate) {
+                this.socket.send(JSON.stringify({
+                    type: "signal",
+                    roomId: this.roomId,
+                    targetId: peerId,
+                    signalData: event.candidate
+                }));
+            }
+        };
+
+        return pc;
+    }
+
+    // --- Демонстрация экрана ---
+    async shareScreen() {
+        try {
+            this.screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            const screenTrack = this.screenStream.getTracks()[0];
+            Object.values(this.peerConnections).forEach(pc => {
+                const sender = pc.getSenders().find(s => s.track.kind === "video");
+                if (sender) sender.replaceTrack(screenTrack);
+            });
+            screenTrack.onended = () => this.stopScreenShare();
+        } catch (error) {
+            console.error("Ошибка демонстрации экрана:", error);
+        }
+    }
+
+    stopScreenShare() {
+        if (this.screenStream) {
+            const videoTrack = this.localStream.getVideoTracks()[0];
+            Object.values(this.peerConnections).forEach(pc => {
+                const sender = pc.getSenders().find(s => s.track.kind === "video");
+                if (sender) sender.replaceTrack(videoTrack);
+            });
+            this.screenStream.getTracks().forEach(track => track.stop());
+            this.screenStream = null;
+        }
+    }
+
+    toggleCamera() {
+        this.isCameraEnabled = !this.isCameraEnabled;
+        this.localStream.getVideoTracks()[0].enabled = this.isCameraEnabled;
+    }
+
+    toggleMic() {
+        this.isMicEnabled = !this.isMicEnabled;
+        this.localStream.getAudioTracks()[0].enabled = this.isMicEnabled;
+    }
+
+    leaveRoom() {
+        if (!this.roomId) return;
+        this.socket.send(JSON.stringify({ type: "leave-room", roomId: this.roomId }));
+        if (this.localStream) this.localStream.getTracks().forEach(track => track.stop());
+        Object.values(this.peerConnections).forEach(pc => pc.close());
+        this.peerConnections = {};
+        this.roomId = null;
+    }
+
+    createRoom() {
+        const adminPassword = document.getElementById("adminPasswordInput").value;
+        if (!adminPassword) {
+            alert("Введите пароль администратора!");
+            return;
+        }
+        this.socket.send(JSON.stringify({ type: "create-room", adminPassword }));
+    }
 }
 
-// Демонстрация экрана (без изменений)
-async function shareScreen() {
-  try {
-    screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-    const screenTrack = screenStream.getTracks()[0];
+// --- Инициализация ---
+const conference = new VideoConference("ws://localhost:8080/");
 
-    Object.values(peerConnections).forEach((peerConnection) => {
-      const sender = peerConnection.getSenders().find((s) => s.track.kind === "video");
-      if (sender) {
-        sender.replaceTrack(screenTrack);
-      }
-    });
-
-    screenTrack.onended = () => {
-      stopScreenShare();
-    };
-
-    console.info("Демонстрация экрана начата");
-  } catch (error) {
-    console.error("Ошибка демонстрации экрана:", error);
-  }
-}
-
-// Остановка демонстрации экрана (без изменений)
-function stopScreenShare() {
-  if (screenStream) {
-    const videoTrack = localStream.getVideoTracks()[0];
-    Object.values(peerConnections).forEach((peerConnection) => {
-      const sender = peerConnection.getSenders().find((s) => s.track.kind === "video");
-      if (sender) {
-        sender.replaceTrack(videoTrack);
-      }
-    });
-    screenStream.getTracks().forEach((track) => track.stop());
-    screenStream = null;
-    console.info("Демонстрация экрана остановлена");
-  }
-}
-
-// Включение/выключение камеры (без изменений)
-function toggleCamera() {
-  isCameraEnabled = !isCameraEnabled;
-  localStream.getVideoTracks()[0].enabled = isCameraEnabled;
-  console.info("Камера " + (isCameraEnabled ? "включена" : "выключена"));
-}
-
-// Включение/выключение микрофона (без изменений)
-function toggleMic() {
-  isMicEnabled = !isMicEnabled;
-  localStream.getAudioTracks()[0].enabled = isMicEnabled;
-  console.info("Микрофон " + (isMicEnabled ? "включен" : "выключен"));
-}
-
-// Отключение от комнаты (без изменений)
-function leaveRoom() {
-  if (!roomId) return;
-
-  socket.send(JSON.stringify({ type: "leave-room", roomId }));
-
-  if (localStream) {
-    localStream.getTracks().forEach((track) => track.stop());
-  }
-
-  Object.values(peerConnections).forEach((peerConnection) => peerConnection.close());
-  peerConnections = {};
-
-  roomId = null;
-  console.info("Отключение от комнаты");
-}
-
-// Функция создания комнаты (панель администратора)
-function createRoom() {
-  const adminPassword = document.getElementById("adminPasswordInput").value;
-  if (!adminPassword) {
-    alert("Введите пароль администратора!");
-    return;
-  }
-  socket.send(JSON.stringify({ type: "create-room", adminPassword }));
-}
-
-// Привязка событий кнопок
-shareScreenButton.onclick = shareScreen;
-toggleCameraButton.onclick = toggleCamera;
-toggleMicButton.onclick = toggleMic;
-
-setTimeout(() => {
-  console.log(peerConnections);
-}, 3000);
+window.joinRoom = () => conference.joinRoom();
+window.leaveRoom = () => conference.leaveRoom();
+window.createRoom = () => conference.createRoom();

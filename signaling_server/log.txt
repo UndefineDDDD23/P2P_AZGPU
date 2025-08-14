@@ -1,0 +1,83 @@
+[2025-08-14 09:34:23] INFO: New connection {"resourceId":"124"}
+[2025-08-14 09:34:28] INFO: Room created by admin {"roomId":"666f0263","secretKey":"b2b3d604e47898bc8e08a1f20922207f","resourceId":"124"}
+[2025-08-14 09:34:29] INFO: Client disconnected {"resourceId":"124"}
+[2025-08-14 09:34:29] INFO: User removed from room {"roomId":"666f0263","resourceId":"124"}
+[2025-08-14 09:35:07] INFO: New connection {"resourceId":"131"}
+[2025-08-14 09:35:08] INFO: Client disconnected {"resourceId":"131"}
+[2025-08-14 09:35:08] INFO: New connection {"resourceId":"136"}
+[2025-08-14 09:35:38] INFO: Client disconnected {"resourceId":"136"}
+[2025-08-14 09:35:39] INFO: New connection {"resourceId":"141"}
+[2025-08-14 09:35:45] INFO: Client disconnected {"resourceId":"141"}
+[2025-08-14 09:35:46] INFO: New connection {"resourceId":"146"}
+[2025-08-14 09:35:48] INFO: Room created by admin {"roomId":"a220661e","secretKey":"f2cff5edd730eaf8b59a092129ec5d77","resourceId":"146"}
+[2025-08-14 09:36:03] INFO: Client disconnected {"resourceId":"146"}
+[2025-08-14 09:36:03] INFO: User removed from room {"roomId":"a220661e","resourceId":"146"}
+[2025-08-14 09:45:35] INFO: New connection opened {"resourceId":55}
+[2025-08-14 09:45:38] INFO: Room created {"roomId":"2419d80c","secretKey":"8bb8c78157770c196fefdedafd996c4b","resourceId":55}
+[2025-08-14 09:45:42] INFO: Connection closed {"resourceId":55}
+[2025-08-14 09:45:42] INFO: New connection opened {"resourceId":93}
+[2025-08-14 09:46:33] INFO: Connection closed {"resourceId":93}
+[2025-08-14 09:46:34] INFO: New connection opened {"resourceId":98}
+[2025-08-14 09:47:09] INFO: New connection opened {"resourceId":102}
+[2025-08-14 09:48:35] INFO: Connection closed {"resourceId":98}
+[2025-08-14 09:48:36] INFO: New connection opened {"resourceId":107}
+[2025-08-14 09:48:37] INFO: Connection closed {"resourceId":102}
+[2025-08-14 09:48:38] INFO: New connection opened {"resourceId":112}
+[2025-08-14 09:50:14] INFO: Connection closed {"resourceId":107}
+[2025-08-14 09:50:15] INFO: New connection opened {"resourceId":117}
+[2025-08-14 09:50:17] INFO: Connection closed {"resourceId":112}
+[2025-08-14 09:50:18] INFO: New connection opened {"resourceId":122}
+[2025-08-14 09:51:26] INFO: Connection closed {"resourceId":117}
+[2025-08-14 09:51:27] INFO: New connection opened {"resourceId":127}
+[2025-08-14 09:51:28] INFO: Connection closed {"resourceId":122}
+[2025-08-14 09:51:28] INFO: New connection opened {"resourceId":132}
+[2025-08-14 09:52:05] INFO: Connection closed {"resourceId":127}
+[2025-08-14 09:52:05] INFO: New connection opened {"resourceId":137}
+[2025-08-14 09:52:06] INFO: Connection closed {"resourceId":132}
+[2025-08-14 09:52:07] INFO: New connection opened {"resourceId":142}
+[2025-08-14 09:54:09] INFO: Connection closed {"resourceId":137}
+[2025-08-14 09:54:10] INFO: New connection opened {"resourceId":147}
+[2025-08-14 09:54:10] INFO: Connection closed {"resourceId":142}
+[2025-08-14 09:54:11] INFO: New connection opened {"resourceId":152}
+[2025-08-14 09:54:35] INFO: Connection closed {"resourceId":152}
+[2025-08-14 09:54:35] INFO: New connection opened {"resourceId":157}
+[2025-08-14 09:54:36] INFO: Connection closed {"resourceId":147}
+[2025-08-14 09:54:37] INFO: New connection opened {"resourceId":162}
+[2025-08-14 09:55:02] INFO: Connection closed {"resourceId":162}
+[2025-08-14 09:55:02] INFO: New connection opened {"resourceId":167}
+[2025-08-14 09:55:03] INFO: Connection closed {"resourceId":157}
+[2025-08-14 09:55:03] INFO: New connection opened {"resourceId":172}
+[2025-08-14 09:55:47] INFO: Connection closed {"resourceId":167}
+[2025-08-14 09:55:48] INFO: New connection opened {"resourceId":177}
+[2025-08-14 09:55:48] INFO: Connection closed {"resourceId":172}
+[2025-08-14 09:55:49] INFO: New connection opened {"resourceId":182}
+[2025-08-14 10:07:34] INFO: Connection closed {"resourceId":177}
+[2025-08-14 10:07:35] INFO: New connection opened {"resourceId":187}
+[2025-08-14 10:07:38] INFO: Connection closed {"resourceId":182}
+[2025-08-14 10:07:39] INFO: New connection opened {"resourceId":192}
+[2025-08-14 10:10:36] INFO: Connection closed {"resourceId":187}
+[2025-08-14 10:10:37] INFO: New connection opened {"resourceId":197}
+[2025-08-14 10:10:37] INFO: Connection closed {"resourceId":192}
+[2025-08-14 10:10:38] INFO: New connection opened {"resourceId":202}
+[2025-08-14 10:11:07] INFO: Connection closed {"resourceId":197}
+[2025-08-14 10:11:07] INFO: Connection closed {"resourceId":202}
+[2025-08-14 10:11:07] INFO: New connection opened {"resourceId":208}
+[2025-08-14 10:11:08] INFO: New connection opened {"resourceId":212}
+[2025-08-14 10:11:25] INFO: Connection closed {"resourceId":208}
+[2025-08-14 10:11:26] INFO: New connection opened {"resourceId":217}
+[2025-08-14 10:16:14] INFO: Connection closed {"resourceId":217}
+[2025-08-14 10:16:14] INFO: Connection closed {"resourceId":212}
+[2025-08-14 10:16:14] INFO: New connection opened {"resourceId":223}
+[2025-08-14 10:16:15] INFO: New connection opened {"resourceId":227}
+[2025-08-14 10:20:32] INFO: Connection closed {"resourceId":223}
+[2025-08-14 10:20:33] INFO: New connection opened {"resourceId":232}
+[2025-08-14 10:20:33] INFO: Connection closed {"resourceId":227}
+[2025-08-14 10:20:33] INFO: New connection opened {"resourceId":237}
+[2025-08-14 10:25:19] INFO: Connection closed {"resourceId":232}
+[2025-08-14 10:25:19] INFO: Connection closed {"resourceId":237}
+[2025-08-14 10:25:19] INFO: New connection opened {"resourceId":243}
+[2025-08-14 10:25:20] INFO: New connection opened {"resourceId":247}
+[2025-08-14 10:25:31] INFO: Connection closed {"resourceId":243}
+[2025-08-14 10:25:31] INFO: New connection opened {"resourceId":252}
+[2025-08-14 10:25:31] INFO: Connection closed {"resourceId":247}
+[2025-08-14 10:25:32] INFO: New connection opened {"resourceId":257}
